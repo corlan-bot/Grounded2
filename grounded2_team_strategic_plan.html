@@ -1,0 +1,432 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Grounded 2 — 3-Player Strategic Plan</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; }
+  body {
+    font-family: system-ui, -apple-system, sans-serif;
+    background: #f4f3ef;
+    color: #1a1a18;
+    margin: 0;
+    padding: 2rem 1rem;
+  }
+  .container { max-width: 780px; margin: 0 auto; }
+  h1 { font-size: 22px; font-weight: 600; margin: 0 0 4px; }
+  .subtitle { font-size: 13px; color: #5f5e5a; margin-bottom: 1.5rem; }
+
+  .phase-tabs { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 1.5rem; }
+  .tab-btn {
+    padding: 6px 14px; border-radius: 8px;
+    border: 0.5px solid #c0bfb7;
+    background: #fff;
+    color: #5f5e5a; font-size: 13px; cursor: pointer;
+    transition: all .15s; font-family: inherit;
+  }
+  .tab-btn.active {
+    background: #ebebea;
+    color: #1a1a18;
+    border-color: #888780;
+    font-weight: 500;
+  }
+  .tab-btn:hover:not(.active) { background: #f8f7f4; }
+
+  .phase-block { display: none; }
+  .phase-block.visible { display: block; }
+
+  .phase-header {
+    display: flex; align-items: center; gap: 12px;
+    margin-bottom: 1rem; padding-bottom: 0.75rem;
+    border-bottom: 0.5px solid #d3d1c7;
+  }
+  .phase-pill {
+    font-size: 11px; font-weight: 500; padding: 3px 10px;
+    border-radius: 99px;
+  }
+  .pill-green { background: #EAF3DE; color: #3B6D11; }
+  .pill-amber { background: #FAEEDA; color: #854F0B; }
+  .pill-coral { background: #FAECE7; color: #993C1D; }
+  .pill-purple { background: #EEEDFE; color: #3C3489; }
+
+  .phase-title { font-size: 17px; font-weight: 500; }
+  .phase-desc { font-size: 13px; color: #5f5e5a; margin: 0 0 1.25rem; line-height: 1.6; }
+
+  .section-label {
+    font-size: 11px; font-weight: 500; letter-spacing: .04em;
+    text-transform: uppercase; color: #888780;
+    margin: 1.25rem 0 0.6rem;
+  }
+
+  .role-row { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; margin-bottom: 1rem; }
+  .role-card {
+    background: #ebebea; border-radius: 8px;
+    padding: 10px 12px; border: 0.5px solid #d3d1c7;
+  }
+  .role-name { font-size: 12px; font-weight: 500; color: #1a1a18; margin-bottom: 4px; }
+  .role-detail { font-size: 11px; color: #5f5e5a; line-height: 1.5; }
+
+  .activity-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px; }
+  .activity-item {
+    display: flex; align-items: flex-start; gap: 10px;
+    background: #fff; border: 0.5px solid #d3d1c7;
+    border-radius: 8px; padding: 10px 12px;
+  }
+  .act-icon {
+    width: 22px; height: 22px; border-radius: 4px;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0; font-size: 12px; margin-top: 1px;
+    font-weight: 600;
+  }
+  .icon-green { background: #EAF3DE; color: #3B6D11; }
+  .icon-amber { background: #FAEEDA; color: #854F0B; }
+  .icon-coral { background: #FAECE7; color: #993C1D; }
+  .icon-purple { background: #EEEDFE; color: #534AB7; }
+  .icon-blue { background: #E6F1FB; color: #185FA5; }
+
+  .act-content { flex: 1; }
+  .act-title { font-size: 13px; font-weight: 500; color: #1a1a18; line-height: 1.4; }
+  .act-sub { font-size: 12px; color: #5f5e5a; margin-top: 2px; line-height: 1.5; }
+
+  .craft-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+  .craft-card {
+    border: 0.5px solid #d3d1c7; border-radius: 8px;
+    padding: 10px 12px; background: #fff;
+  }
+  .craft-tier { font-size: 10px; font-weight: 500; text-transform: uppercase; letter-spacing: .05em; margin-bottom: 4px; }
+  .craft-tier.t1 { color: #3B6D11; }
+  .craft-tier.t2 { color: #854F0B; }
+  .craft-tier.t3 { color: #993C1D; }
+  .craft-tier.leg { color: #534AB7; }
+  .craft-name { font-size: 13px; font-weight: 500; color: #1a1a18; margin-bottom: 3px; }
+  .craft-req { font-size: 11px; color: #5f5e5a; }
+
+  .tip-box {
+    background: #E6F1FB; border: 0.5px solid #B5D4F4;
+    border-radius: 8px; padding: 10px 14px; margin-top: 1rem;
+    font-size: 12px; color: #185FA5; line-height: 1.6;
+  }
+  .tip-box strong { color: #0C447C; }
+
+  .mutation-row { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+  .mut-card {
+    border: 0.5px solid #d3d1c7; border-radius: 8px;
+    padding: 8px 10px; background: #ebebea;
+  }
+  .mut-role { font-size: 10px; font-weight: 500; text-transform: uppercase; letter-spacing: .04em; color: #888780; margin-bottom: 3px; }
+  .mut-name { font-size: 12px; font-weight: 500; color: #1a1a18; }
+  .mut-effect { font-size: 11px; color: #5f5e5a; margin-top: 2px; }
+
+  @media (max-width: 520px) {
+    .role-row, .mutation-row { grid-template-columns: 1fr; }
+    .craft-grid { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+<div class="container">
+  <h1>3-player strategic plan — Grounded 2</h1>
+  <div class="subtitle">Brookhollow Park &middot; Co-op progression roadmap</div>
+
+  <div class="phase-tabs">
+    <button class="tab-btn active" onclick="showPhase(0)">Phase 1 — Survive</button>
+    <button class="tab-btn" onclick="showPhase(1)">Phase 2 — Establish</button>
+    <button class="tab-btn" onclick="showPhase(2)">Phase 3 — Dominate</button>
+    <button class="tab-btn" onclick="showPhase(3)">Phase 4 — Conquer</button>
+  </div>
+
+  <!-- PHASE 1 -->
+  <div class="phase-block visible" id="phase-0">
+    <div class="phase-header">
+      <span class="phase-pill pill-green">Early game</span>
+      <span class="phase-title">Survive the first hours</span>
+    </div>
+    <p class="phase-desc">Before splitting up, stick together and complete the tutorial story quests. The narrative naturally unlocks Workbench, Omni-Tool, and your first Ranger Station — the backbone of everything that follows.</p>
+
+    <div class="section-label">Team role split</div>
+    <div class="role-row">
+      <div class="role-card">
+        <div class="role-name">Player 1 — Warrior</div>
+        <div class="role-detail">Ladybug or Red Ant armor · club/sword · tank threats, clear the path · equip Meat Shield mutation</div>
+      </div>
+      <div class="role-card">
+        <div class="role-name">Player 2 — Ranger</div>
+        <div class="role-detail">Pebblet Spear + bow · scout ahead, pull enemies · equip Sharpshooter · handles Mite clearing</div>
+      </div>
+      <div class="role-card">
+        <div class="role-name">Player 3 — Gatherer</div>
+        <div class="role-detail">Focus on resource loops · Pebblet + Sprig + Plant Fiber · manage the Workbench · unlock new recipes first</div>
+      </div>
+    </div>
+
+    <div class="section-label">Priority activities</div>
+    <ul class="activity-list">
+      <li class="activity-item">
+        <div class="act-icon icon-green">1</div>
+        <div class="act-content">
+          <div class="act-title">Fix Omni-Tool key bindings immediately</div>
+          <div class="act-sub">Default bindings cause accidental chopping and mount-triggering. Remap before exploring.</div>
+        </div>
+      </li>
+      <li class="activity-item">
+        <div class="act-icon icon-green">2</div>
+        <div class="act-content">
+          <div class="act-title">Scan everything at the Resource Analyzer</div>
+          <div class="act-sub">Analyze from hand — no need to inventory first. Prioritize: Pebblet, Sprig, Plant Fiber, Mite parts, sap. Unlocks all early recipes.</div>
+        </div>
+      </li>
+      <li class="activity-item">
+        <div class="act-icon icon-green">3</div>
+        <div class="act-content">
+          <div class="act-title">Build base near a Ranger Station with water access</div>
+          <div class="act-sub">Elevate it on a rock, root, or fence beam — keeps most bugs out. Link to Field Station for analyzer/surveyor access.</div>
+        </div>
+      </li>
+      <li class="activity-item">
+        <div class="act-icon icon-green">4</div>
+        <div class="act-content">
+          <div class="act-title">Farm Reliable Friend mutation early</div>
+          <div class="act-sub">Switch to Whoa mode temporarily · have teammates down and revive each other repeatedly · dramatically cuts revive time for boss fights.</div>
+        </div>
+      </li>
+      <li class="activity-item">
+        <div class="act-icon icon-green">5</div>
+        <div class="act-content">
+          <div class="act-title">Collect every Milk Molar you spot</div>
+          <div class="act-sub">Spend first molars on mutation slot upgrades (unlock slots 3 → 4 → 5). More mutations = massive power spike.</div>
+        </div>
+      </li>
+    </ul>
+
+    <div class="section-label">Priority crafting goals — Tier 1</div>
+    <div class="craft-grid">
+      <div class="craft-card"><div class="craft-tier t1">Weapon</div><div class="craft-name">Pebblet Spear</div><div class="craft-req">Pebblet + Sprig + Plant Fiber · starter main weapon</div></div>
+      <div class="craft-card"><div class="craft-tier t1">Weapon</div><div class="craft-name">Warhammerlet</div><div class="craft-req">Pebblets + Sprig · heavy stun, great vs armoured bugs</div></div>
+      <div class="craft-card"><div class="craft-tier t1">Armor</div><div class="craft-name">Red Ant Armor (full set)</div><div class="craft-req">Red Ant parts · ants go neutral · crit chance + stamina bonus</div></div>
+      <div class="craft-card"><div class="craft-tier t1">Survival</div><div class="craft-name">Fiber Bandages (stack)</div><div class="craft-req">Grass fiber + sap · upgraded version = 1 grass + 1 sap · mandatory</div></div>
+      <div class="craft-card"><div class="craft-tier t1">Base</div><div class="craft-name">Workbench + Roasting Pit</div><div class="craft-req">Core production buildings · roast Weevil meat for food</div></div>
+      <div class="craft-card"><div class="craft-tier t1">Tool</div><div class="craft-name">Omni-Tool (Tier 1)</div><div class="craft-req">Replaces axe, hammer, shovel, wrench · upgrade immediately</div></div>
+    </div>
+    <div class="tip-box"><strong>Co-op tip:</strong> Stock crude rope on a spinning wheel — slower but far more resource-efficient than hand-crafting. Player 3 should keep the spinning wheel running while Players 1 &amp; 2 are out gathering.</div>
+  </div>
+
+  <!-- PHASE 2 -->
+  <div class="phase-block" id="phase-1">
+    <div class="phase-header">
+      <span class="phase-pill pill-amber">Mid game</span>
+      <span class="phase-title">Establish dominance</span>
+    </div>
+    <p class="phase-desc">With the base secured and Tier 1 weapons in hand, begin splitting the team for parallel progression. One player scouts new biomes while the others upgrade the base and craft mid-tier gear.</p>
+
+    <div class="section-label">Refined team roles</div>
+    <div class="role-row">
+      <div class="role-card">
+        <div class="role-name">Player 1 — Tank/Warrior</div>
+        <div class="role-detail">Upgrade to Ladybug Armor · wield club + shield · Barbarian mutation · leads dungeon runs and boss pulls</div>
+      </div>
+      <div class="role-card">
+        <div class="role-name">Player 2 — Ranger/Scout</div>
+        <div class="role-detail">Spider Stringer bow · Orb Weaver armor · marks threats, clears range · scouts biomes for Milk Molars</div>
+      </div>
+      <div class="role-card">
+        <div class="role-name">Player 3 — Rogue/Support</div>
+        <div class="role-detail">Mosquito Needle rapier · light armor · lifesteal sustain · manages Smithing Station upgrades and smoothie production</div>
+      </div>
+    </div>
+
+    <div class="section-label">Priority activities</div>
+    <ul class="activity-list">
+      <li class="activity-item">
+        <div class="act-icon icon-amber">★</div>
+        <div class="act-content">
+          <div class="act-title">Unlock and progress the Egg Hunt quest</div>
+          <div class="act-sub">Requires Optical Disc · unlocks the Buggy mount. Use Buggy to haul grass planks and weed stems — huge logistics upgrade for the team.</div>
+        </div>
+      </li>
+      <li class="activity-item">
+        <div class="act-icon icon-amber">★</div>
+        <div class="act-content">
+          <div class="act-title">Upgrade Omni-Tool to Tier 2</div>
+          <div class="act-sub">Requires Roach Chunks + Lingonberry Leather + Scorpion Stingers · unlocks access to mid-game gear tier including Snail Shell armour.</div>
+        </div>
+      </li>
+      <li class="activity-item">
+        <div class="act-icon icon-amber">⚒</div>
+        <div class="act-content">
+          <div class="act-title">Build the Smithing Station</div>
+          <div class="act-sub">Enables weapon upgrades. Collect Brittle Whetstones (Quartzite) and Brittle Plating (Marble) to level weapons to rank 5.</div>
+        </div>
+      </li>
+      <li class="activity-item">
+        <div class="act-icon icon-amber">⚒</div>
+        <div class="act-content">
+          <div class="act-title">Upgrade Cookery · shift to smoothie production</div>
+          <div class="act-sub">Smoothies stack and give bonus boosts. Stock the team with max health smoothies before every dungeon run. Far superior to roasted meat mid-game.</div>
+        </div>
+      </li>
+      <li class="activity-item">
+        <div class="act-icon icon-amber">⚒</div>
+        <div class="act-content">
+          <div class="act-title">Save Optical Discs for the Science Shop</div>
+          <div class="act-sub">Raw Science is the premium currency. Prioritize: mutation slot upgrades, Tier 2 Omni-Tool, key structure unlocks. Don't waste on cosmetics.</div>
+        </div>
+      </li>
+    </ul>
+
+    <div class="section-label">Priority crafting goals — Tier 2</div>
+    <div class="craft-grid">
+      <div class="craft-card"><div class="craft-tier t2">Weapon</div><div class="craft-name">Mosquito Needle</div><div class="craft-req">Mosquito parts · lifesteal rapier · A-tier mid-game mainstay</div></div>
+      <div class="craft-card"><div class="craft-tier t2">Weapon</div><div class="craft-name">Red Ant Club</div><div class="craft-req">Red Ant parts · stun damage vs armoured enemies · synergises with Red Ant armor set</div></div>
+      <div class="craft-card"><div class="craft-tier t2">Weapon</div><div class="craft-name">Spider Stringer (bow)</div><div class="craft-req">Spider parts · reliable ranged · affordable crafting costs</div></div>
+      <div class="craft-card"><div class="craft-tier t2">Armor</div><div class="craft-name">Snail Shell Armor</div><div class="craft-req">Requires Tier 2 Omni-Tool · excellent mid-game defensive set</div></div>
+      <div class="craft-card"><div class="craft-tier t2">Armor</div><div class="craft-name">Orb Weaver Armor</div><div class="craft-req">Spider parts · ranged bonus · suited to Player 2 Ranger build</div></div>
+      <div class="craft-card"><div class="craft-tier t2">Base</div><div class="craft-name">Jerky Rack + Spinning Wheel</div><div class="craft-req">Dry Pupa Hide/Berry Leather · far more resource-efficient than raw crafting</div></div>
+    </div>
+
+    <div class="section-label">Mutation loadouts (configure per player)</div>
+    <div class="mutation-row">
+      <div class="mut-card"><div class="mut-role">Player 1 — Tank</div><div class="mut-name">Meat Shield + Barbarian</div><div class="mut-effect">Max survivability · damage absorption</div></div>
+      <div class="mut-card"><div class="mut-role">Player 2 — Ranger</div><div class="mut-name">Sharpshooter + Quick Shot</div><div class="mut-effect">Ranged DPS + fire rate</div></div>
+      <div class="mut-card"><div class="mut-role">Player 3 — Rogue</div><div class="mut-name">Assassin + Coup de Grass</div><div class="mut-effect">Burst damage + stealth burst</div></div>
+    </div>
+    <div class="tip-box"><strong>Co-op tip:</strong> Shared World mode means everyone keeps progress if the host goes offline. Set up at least one backup host from the team with world access — critical for persistent sessions.</div>
+  </div>
+
+  <!-- PHASE 3 -->
+  <div class="phase-block" id="phase-2">
+    <div class="phase-header">
+      <span class="phase-pill pill-coral">Late game</span>
+      <span class="phase-title">Dominate the park</span>
+    </div>
+    <p class="phase-desc">Tier 3 weapons, legendary drops, and boss preparation. The team should now be running coordinated dungeon clears with defined roles — tank pulls aggro, ranger burns from distance, rogue flanks and finishes.</p>
+
+    <div class="section-label">Key activities</div>
+    <ul class="activity-list">
+      <li class="activity-item">
+        <div class="act-icon icon-coral">!</div>
+        <div class="act-content">
+          <div class="act-title">Full team: complete all story main quests (~20 hrs)</div>
+          <div class="act-sub">~15 main quests, each under an hour. Add time for gear grinding before boss fights. Story unlocks new biomes and the Tier 3 gear pathway.</div>
+        </div>
+      </li>
+      <li class="activity-item">
+        <div class="act-icon icon-coral">!</div>
+        <div class="act-content">
+          <div class="act-title">Upgrade weapons past rank 5 with Sturdy Whetstones</div>
+          <div class="act-sub">Collect Sturdy Whetstones + Sturdy Plating for ranks 6–9. Match damage type to enemy weakness: slashing vs bugs, smashing vs armoured insects.</div>
+        </div>
+      </li>
+      <li class="activity-item">
+        <div class="act-icon icon-coral">⚔</div>
+        <div class="act-content">
+          <div class="act-title">Hunt and equip unique/legendary weapons</div>
+          <div class="act-sub">Ice Sickles (best dagger), Crimson Avenger (sword + spider counter), Tick Macuahuitl (lifesteal), Glacial Sting (freeze control) — each hidden or boss-locked.</div>
+        </div>
+      </li>
+      <li class="activity-item">
+        <div class="act-icon icon-coral">⚔</div>
+        <div class="act-content">
+          <div class="act-title">Mage variant: unlock Candy Staff / Heatwave</div>
+          <div class="act-sub">Heat Wave staff — massive AOE fire damage for mob clearing. If Player 3 switches to Mage role, pair Butterfly Armor + Fire Ant Shield mutation.</div>
+        </div>
+      </li>
+      <li class="activity-item">
+        <div class="act-icon icon-blue">◈</div>
+        <div class="act-content">
+          <div class="act-title">Explore all biomes: Frozen Wastelands, Cobblestone Labyrinths, Sewage Tunnels</div>
+          <div class="act-sub">Each zone has biome-specific materials and hidden legendary drops. Always send the Ranger scout first with bow ready.</div>
+        </div>
+      </li>
+    </ul>
+
+    <div class="section-label">Priority crafting goals — Tier 3 / Legendary</div>
+    <div class="craft-grid">
+      <div class="craft-card"><div class="craft-tier leg">Legendary</div><div class="craft-name">Ice Sickles</div><div class="craft-req">Hidden drop · best dual-wield weapon · freeze effect · S-tier</div></div>
+      <div class="craft-card"><div class="craft-tier t3">Weapon</div><div class="craft-name">Mantis Blade</div><div class="craft-req">Mantis parts · highest crit rate + DPS in tier · A-tier</div></div>
+      <div class="craft-card"><div class="craft-tier t3">Weapon</div><div class="craft-name">Wolf Stringer</div><div class="craft-req">Wolf Spider parts · powerful Tier 3 bow · upgrade for Player 2</div></div>
+      <div class="craft-card"><div class="craft-tier t3">Weapon</div><div class="craft-name">Tick Macuahuitl</div><div class="craft-req">Tick parts · lifesteal slashing sword · sustain-heavy builds</div></div>
+      <div class="craft-card"><div class="craft-tier t3">Weapon</div><div class="craft-name">Heat Wave (Candy Staff)</div><div class="craft-req">Candy materials · massive AOE fire damage · mob clearing specialist</div></div>
+      <div class="craft-card"><div class="craft-tier t3">Upgrade</div><div class="craft-name">Supreme Whetstones</div><div class="craft-req">Required for rank 10 max upgrades on Tier 3 + Legendary weapons</div></div>
+    </div>
+    <div class="tip-box"><strong>Boss prep checklist:</strong> All three players need at minimum Tier 2/3 armor + Tier 3 weapons. Stack full bandage buffs, smoothies, and confirm Reliable Friend mutation is active. Assign the tank to open aggro; never all rush at once.</div>
+  </div>
+
+  <!-- PHASE 4 -->
+  <div class="phase-block" id="phase-3">
+    <div class="phase-header">
+      <span class="phase-pill pill-purple">Endgame</span>
+      <span class="phase-title">Conquer everything</span>
+    </div>
+    <p class="phase-desc">All story quests complete, max-upgraded weapons in hand. Focus on clearing all bosses, securing all unique drops, expanding the base, and preparing for Winter 2025/2026 update content.</p>
+
+    <div class="section-label">Endgame priority activities</div>
+    <ul class="activity-list">
+      <li class="activity-item">
+        <div class="act-icon icon-purple">✦</div>
+        <div class="act-content">
+          <div class="act-title">Max all 5 mutation slots per player — build 4 Loadouts each</div>
+          <div class="act-sub">Create loadouts for: boss fights, mob clearing, exploration, and base defence. Swap rapidly without menu navigation.</div>
+        </div>
+      </li>
+      <li class="activity-item">
+        <div class="act-icon icon-purple">✦</div>
+        <div class="act-content">
+          <div class="act-title">Upgrade Omni-Tool to Tier 3 (Winter update)</div>
+          <div class="act-sub">Tier 3 locked until Winter update — stock required materials in advance: high-tier roach, lingonberry, and scorpion stinger variants.</div>
+        </div>
+      </li>
+      <li class="activity-item">
+        <div class="act-icon icon-purple">✦</div>
+        <div class="act-content">
+          <div class="act-title">Clear all bosses with coordinated role execution</div>
+          <div class="act-sub">Warrior holds aggro + parries · Ranger burns from safe distance · Rogue/Mage flanks for burst. Rotate resurrection duties using Reliable Friend.</div>
+        </div>
+      </li>
+      <li class="activity-item">
+        <div class="act-icon icon-purple">✦</div>
+        <div class="act-content">
+          <div class="act-title">Full park exploration — find all Milk Molars</div>
+          <div class="act-sub">Use the Resource Surveyor (unlocked after Oak Lab) to scan the map and track remaining collectibles. Molar income = permanent stat gains for the whole team.</div>
+        </div>
+      </li>
+      <li class="activity-item">
+        <div class="act-icon icon-blue">→</div>
+        <div class="act-content">
+          <div class="act-title">Prepare for Summer 2026 content update</div>
+          <div class="act-sub">Obsidian roadmap confirms Summer 2026 expansions. Stock Science Discs and surplus resources so the team can immediately progress new content on release.</div>
+        </div>
+      </li>
+    </ul>
+
+    <div class="section-label">Ideal endgame loadouts</div>
+    <div class="role-row">
+      <div class="role-card">
+        <div class="role-name">Player 1 — Warrior/Tank</div>
+        <div class="role-detail">Tick Macuahuitl + shield · Ladybug Armor · Meat Shield + Barbarian + Reliable Friend · holds all aggro</div>
+      </div>
+      <div class="role-card">
+        <div class="role-name">Player 2 — Ranger/DPS</div>
+        <div class="role-detail">Wolf Stringer + Ice Sickles backup · Orb Weaver Armor · Sharpshooter + Quick Shot · safe poke damage from range</div>
+      </div>
+      <div class="role-card">
+        <div class="role-name">Player 3 — Mage/Rogue</div>
+        <div class="role-detail">Heat Wave staff or Mantis Blade · Butterfly Armor · Fire Ant Shield + Assassin · AOE clears + burst finisher</div>
+      </div>
+    </div>
+    <div class="tip-box"><strong>Final tip:</strong> Rogues are currently the strongest archetype in Grounded 2 early access — if Player 3 leans into Wolfsbane Fangs + Venom build, expect potential balance nerfs in future updates. Build for versatility, not just the current meta.</div>
+  </div>
+</div>
+
+<script>
+function showPhase(i) {
+  document.querySelectorAll('.phase-block').forEach((b, j) => {
+    b.classList.toggle('visible', j === i);
+  });
+  document.querySelectorAll('.tab-btn').forEach((b, j) => {
+    b.classList.toggle('active', j === i);
+  });
+}
+</script>
+</body>
+</html>
